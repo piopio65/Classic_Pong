@@ -26,3 +26,32 @@ Attribution 3.0: http://creativecommons.org/licenses/by/3.0/
 # Used fonts
 
 https://fontstruct.com/fontstructions/show/1158273
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+Edit pong.cfg file for :
+- change keybinding for player 1 / player 2
+- change difficulty level
+- and other stuff..
