@@ -1,7 +1,10 @@
 Classic_Pong
+
 Un remake du jeu Pong
-original pong game with scanlines
-auteur : piopio
+
+Original pong game with scanlines added
+
+Auteur : piopio
 
 # Used sounds
 
