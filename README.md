@@ -1,8 +1,9 @@
 Classic_Pong
 Un remake du jeu Pong
 original pong game with scanlines
-auteur : JPL
-									used sounds
+auteur : piopio
+
+# Used sounds
 
 "Pong softsynth"
 
@@ -17,6 +18,8 @@ Licenses in this pack (see below for individual sound licenses)
 
 Attribution 3.0: http://creativecommons.org/licenses/by/3.0/
 
-									# used fonts #
+
+
+# Used fonts
 
 https://fontstruct.com/fontstructions/show/1158273
