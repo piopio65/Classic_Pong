@@ -1,6 +1,6 @@
 import pygame as py
 import math
-import pytweening
+#import pytweening
 from enum import Enum
 
 class Level(Enum):
@@ -61,7 +61,7 @@ BALL_W          = 8
 BALL_H          = 8
 BALL_X          = (SCR_W - BALL_W) / 2
 BALL_Y          = (SCR_H - BALL_H) / 2
-BALL_MAX_ANGLE  = 48
+BALL_MAX_ANGLE  = 46
 
 # ANGLES
 MIN_ANGLE_RAD = math.pi/180
