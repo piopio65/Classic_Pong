@@ -41,14 +41,19 @@ class Game():
 		self.ballhitwall = py.mixer.Sound(BALL_HIT_WALL)
 		self.balllost	 = py.mixer.Sound(BALL_LOST)
 
-		# Load Font
+		# Load Fonts
+		# font for score
 		self.font = py.font.Font(FONT1,FONT_SIZE)
+		# font for other stuff
+		self.font2 = py.font.Font(FONT2,FONT_SIZE2)
 		
+		# Gamestates
+		self.gamestate = GameState.pause
 		self.__start()
 		
 
 	def __start(self):
-		
+		self.cooldown	 = 0
 		self.vline 		 = py.Rect((SCR_W - LINE_WIDTH)/2, LINE_MIN, LINE_WIDTH, SCR_H - (LINE_MIN * 2))
 		self.ball 		 = py.Rect(BALL_X,BALL_Y,BALL_W,BALL_H)
 		self.balldx		 = random.choice(Game.choices)
@@ -68,6 +73,10 @@ class Game():
 		self.rwin		 = False
 		# debug
 		self.tic = False
+
+		# init du gamestate à pause
+		
+		
 		self.__init()
 		
 
@@ -91,45 +100,86 @@ class Game():
 		self.tweenspeed		   = [TWEEN_MIN,TWEEN_MIN]
 		self.batspeeddec	   = [False,False]
 
+		# scores
 		self.fnt_lscore		 = self.font.render(str(self.lscore),False,C_WHITE)
 		self.fnt_rscore		 = self.font.render(str(self.rscore),False,C_WHITE)
+		
+		# pause
+		self.fnt_pause		 = self.font2.render(TXT_PAUSE,False,C_LIGHTGREY)
+		# next
+		self.fnt_next		 = self.font2.render(TXT_NEXT,False,C_LIGHTGREY)
 
-
+	
 	def run(self):
 		while self.running:
 			self.dt = self.clock.tick(FPS)/1000.0
-			self.screen.fill(C_BLACK)
+			
 			self._update()
 			self._draw()
 			py.display.update()
 		py.quit()
 	
 	def _update(self):
-		# deplacement des raquettes
-		self.__move_bats()
-		# deplacement de la balle
-		self.__move_ball()
-		# test collisions ball bats
-		self.__manage_collisions()
-
+		self._check_GameState()
+		if self.gamestate == GameState.run:
+			# deplacement des raquettes
+			self.__move_bats()
+			# deplacement de la balle
+			self.__move_ball()
+			# test collisions ball bats
+			self.__manage_collisions()
+		
+		elif self.gamestate == GameState.pause:
+			self.__move_bats()
+	
 	def _draw(self):
+		self.screen.fill(C_BLACK)
+		
+			
 		Game.__drawscores(self.screen,self.fnt_lscore,self.fnt_rscore)
 		Game.__draw_alternate_lines_in_obj(self.screen,self.vline, round(self.vline.height / VLINE_NB_SEGMENTS), C_GREY,C_BLACK)
 		Game.__draw_alternate_lines_in_obj(self.screen,self.vline, 1, C_BLACK)
 		Game.__draw_alternate_lines_in_obj(self.screen,self.batl, THICKNESS, C_WHITE, C_BLACK)
 		Game.__draw_alternate_lines_in_obj(self.screen,self.batr, THICKNESS, C_WHITE, C_BLACK)
 		Game.__draw_alternate_lines_in_obj(self.screen,self.ball, THICKNESS, C_WHITE, C_BLACK)
+		if self.gamestate == GameState.pause:
+			self._draw_pause()
+		
+	def _check_GameState(self):
+		# check essentials keys
+		keys = py.key.get_pressed()
+		if keys[PAUSE] and self.cooldown < 0: 
+			self.cooldown = WAIT_PAUSE
+			if self.gamestate == GameState.run:
+				self.gamestate = GameState.pause
+			elif self.gamestate == GameState.pause:
+				self.gamestate = GameState.run		
+			elif self.gamestate == GameState.gameover:
+				self.gamestate = GameState.run	
+			#print(f"{self.gamestate.name} state")
+		
+		elif keys[EXIT_PRG]:  # Touche ECHAP
+			self.running = False
+			return
+		
+
+		self.cooldown -= 1
+		if self.cooldown < -1000000:
+			self.cooldown = 0
+
+	def _draw_pause(self):
+		Game.__drawstate(self.screen,self.fnt_pause, self.fnt_next)
+
+	def _draw_gameover(self):
+		pass		
 
 	def __move_bats(self):
+		# check if bat keys released
 		for event in py.event.get():
-			
-			if event.type == py.QUIT: # croix de fermeture
-				self.running = False
-			elif event.type == py.KEYDOWN:
-				if event.key == EXIT_PRG: # ESC
-					self.running = False
-			
-			elif event.type == py.KEYUP:  # lorque les touches raquettes sont relachés
+			if event.type == py.QUIT: # Croix de fermeture
+				self.running=False
+				return	
+			if event.type == py.KEYUP:  # lorque les touches raquettes sont relachés
 				for i in range(0,len(self.keys)):
 					if event.key == self.keys[i][0]:
 						self.batspeeddec[int(i/2)] = True
@@ -157,13 +207,14 @@ class Game():
 		for i in range (0,len(self.speedbat_frame_dy)):
 			self.speedbat_frame_dy[i]=self.dt * SPD_BAT * self.batdirs[i] * self.tweenspeed[i]
 
-		# UPD bats positions
-		self.batl.y += self.speedbat_frame_dy[0]
-		self.batr.y += self.speedbat_frame_dy[1]
-		
-		self.batl.y = Game.clamp(self.batl.y,SPC_Y,SCR_H - self.batl.height - SPC_Y)
-		self.batr.y = Game.clamp(self.batr.y,SPC_Y,SCR_H - self.batr.height - SPC_Y)
-		
+		# UPD bats positions only in Running GameState
+		if self.gamestate == GameState.run:
+			self.batl.y += self.speedbat_frame_dy[0]
+			self.batr.y += self.speedbat_frame_dy[1]
+			
+			self.batl.y = Game.clamp(self.batl.y,SPC_Y,SCR_H - self.batl.height - SPC_Y)
+			self.batr.y = Game.clamp(self.batr.y,SPC_Y,SCR_H - self.batr.height - SPC_Y)
+	
 
 	def __move_ball(self):
 		 
@@ -246,8 +297,22 @@ class Game():
 
 		Game.__draw_alternate_lines_in_obj(scr,rect_xr,THICKNESS,C_BLACK)
 		Game.__draw_alternate_lines_in_obj(scr,rect_xl,THICKNESS,C_BLACK)
-
 	
+	@staticmethod
+	def __drawstate(scr,fnt_text,fnt_next):
+		xt = round((SCR_W - fnt_text.get_width()) / 2)
+		yt = round((SCR_H - fnt_text.get_height()) / 2)
+
+		rect_t = py.Rect(xt,yt,fnt_text.get_width(),fnt_text.get_height())
+		scr.blit(fnt_text,(xt,yt))
+		Game.__draw_alternate_lines_in_obj(scr,rect_t,THICKNESS,C_BLACK)
+
+		xt = round((SCR_W - fnt_next.get_width()) / 2)
+		yt += fnt_next.get_height() + 8
+		rect_t = py.Rect(xt,yt,fnt_next.get_width(),fnt_next.get_height())
+		scr.blit(fnt_next,(xt,yt))
+		Game.__draw_alternate_lines_in_obj(scr,rect_t,THICKNESS,C_BLACK)
+
 	@staticmethod
 	def __calc_result_angles(objbat, objball, objballdy):
 		'''

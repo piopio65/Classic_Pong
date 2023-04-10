@@ -3,6 +3,13 @@ import math
 #import pytweening
 from enum import Enum
 
+class GameState(Enum):
+
+    pause       = 0
+    run         = 1
+    gameover    = 2
+
+
 class Level(Enum):
     '''
                     p0: la vitesse de la balle  (ratio)
@@ -54,7 +61,7 @@ C_BLACK     = (0x00,0x00,0x00,0xFF)
 C_WHITE     = (0xFF,0xFF,0xFF,0xFF)
 C_GREY      = (0x89,0x89,0x89,0xFF)
 C_DARKGREY  = (0x62,0x62,0x62,0xFF)
-
+C_LIGHTGREY = (0xAD,0xAD,0xAD,0xFF)
 
 # BALL
 BALL_W          = 8
@@ -107,11 +114,18 @@ BALL_LOST       = 'assets/sounds/ball_lost.wav'
 FONT1            = 'assets/fonts/pong-score.ttf'
 FONT2            = 'assets/fonts/bit5x3.ttf'
 FONT_SIZE        = 72
+FONT_SIZE2       = 56
+
 
 # ICONE         
 ICON            = 'assets/images/pong.png'
 
 # SCORE         Score max de la plupart des machines de l'epoque  
 MAX_SCORE       = 15
+
+# PAUSE
+TXT_PAUSE       = 'GAME PAUSED'
+TXT_NEXT        = 'PRESS SPACE TO PLAY'
+WAIT_PAUSE      = 30 # 0.5s
 
 RATIO_START_V   = 20
