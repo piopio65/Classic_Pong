@@ -25,7 +25,8 @@ class Game():
 		
 		py.display.set_icon(surf_ico)
 		py.display.set_caption(TITLE)
-		
+		py.mouse.set_visible(MOUSE_VISIBLE)
+
 		self.clock		 = py.time.Clock() 
 		# indice 0 la Key associée, indice 1 la valeur de la direction associé sur l'axe y  
 		self.keys 		 = ((P1_UP,-1),
@@ -48,33 +49,39 @@ class Game():
 		self.font2 = py.font.Font(FONT2,FONT_SIZE2)
 		
 		# Gamestates
-		self.gamestate = GameState.pause
+		self.gamestate 		= GameState.pause
+		self.key_released 	= True
+
+		# FONTS
+		# pause
+		self.fnt_pause		 = self.font2.render(TXT_PAUSE,False,C_DARKGREY)
+		# play after pause
+		self.fnt_play		 = self.font2.render(TXT_PLAY,False,C_DARKGREY)
+		# Gameover
+		self.fnt_winner	 	 = None
+		# Winners
+		self.left_win		 = self.font2.render(TXT_L_PLAYER_WIN,False,C_WHITE)
+		self.right_win		 = self.font2.render(TXT_R_PLAYER_WIN,False,C_WHITE)
+		
+		# restart
+		self.fnt_restart	 = self.font2.render(TXT_RESTART,False,C_WHITE)
+
 		self.__start()
 		
 
 	def __start(self):
-		self.cooldown	 = 0
-		self.vline 		 = py.Rect((SCR_W - LINE_WIDTH)/2, LINE_MIN, LINE_WIDTH, SCR_H - (LINE_MIN * 2))
-		self.ball 		 = py.Rect(BALL_X,BALL_Y,BALL_W,BALL_H)
-		self.balldx		 = random.choice(Game.choices)
+		
+		self.vline 		 	= py.Rect((SCR_W - LINE_WIDTH)/2, LINE_MIN, LINE_WIDTH, SCR_H - (LINE_MIN * 2))
+		self.ball 			= py.Rect(BALL_X,BALL_Y,BALL_W,BALL_H)
+		self.balldx		 	= random.choice(Game.choices)
 		 
-		self.ballangle	 = BALL_MAX_ANGLE
-		self.batl 		 = py.Rect(BATL_X,BATL_Y,BAT_W,BAT_H)
-		self.batr 		 = py.Rect(BATR_X,BATR_Y,BAT_W,BAT_H)
+		self.ballangle	 	= BALL_MAX_ANGLE
+		self.batl 		 	= py.Rect(BATL_X,BATL_Y,BAT_W,BAT_H)
+		self.batr 		 	= py.Rect(BATR_X,BATR_Y,BAT_W,BAT_H)
 		
 		# Scores
-		self.lscore		 = 0
-		self.rscore		 = 0
-		
-		# lwin True si joueur gauche gagne 
-		# rwin True si joueur droit gagne
-		#
-		self.lwin		 = False
-		self.rwin		 = False
-		# debug
-		self.tic = False
-
-		# init du gamestate à pause
+		self.lscore		 	= 0
+		self.rscore		 	= 0
 		
 		
 		self.__init()
@@ -103,95 +110,88 @@ class Game():
 		# scores
 		self.fnt_lscore		 = self.font.render(str(self.lscore),False,C_WHITE)
 		self.fnt_rscore		 = self.font.render(str(self.rscore),False,C_WHITE)
-		
-		# pause
-		self.fnt_pause		 = self.font2.render(TXT_PAUSE,False,C_LIGHTGREY)
-		# next
-		self.fnt_next		 = self.font2.render(TXT_NEXT,False,C_LIGHTGREY)
 
-	
 	def run(self):
 		while self.running:
 			self.dt = self.clock.tick(FPS)/1000.0
-			
 			self._update()
 			self._draw()
 			py.display.update()
 		py.quit()
 	
 	def _update(self):
-		self._check_GameState()
+		self._check_Events()
 		if self.gamestate == GameState.run:
 			# deplacement des raquettes
 			self.__move_bats()
-			# deplacement de la balle
-			self.__move_ball()
 			# test collisions ball bats
 			self.__manage_collisions()
+			# deplacement de la balle
+			self.__move_ball()
 		
-		elif self.gamestate == GameState.pause:
-			self.__move_bats()
+		elif self.gamestate == GameState.pause:    # Pause
+			pass
+		elif self.gamestate == GameState.gameover: # GameOver
+			pass
+			
 	
 	def _draw(self):
 		self.screen.fill(C_BLACK)
-		
-			
 		Game.__drawscores(self.screen,self.fnt_lscore,self.fnt_rscore)
 		Game.__draw_alternate_lines_in_obj(self.screen,self.vline, round(self.vline.height / VLINE_NB_SEGMENTS), C_GREY,C_BLACK)
 		Game.__draw_alternate_lines_in_obj(self.screen,self.vline, 1, C_BLACK)
-		Game.__draw_alternate_lines_in_obj(self.screen,self.batl, THICKNESS, C_WHITE, C_BLACK)
-		Game.__draw_alternate_lines_in_obj(self.screen,self.batr, THICKNESS, C_WHITE, C_BLACK)
-		Game.__draw_alternate_lines_in_obj(self.screen,self.ball, THICKNESS, C_WHITE, C_BLACK)
+		
+		if self.gamestate == GameState.run or self.gamestate == GameState.pause:
+			Game.__draw_alternate_lines_in_obj(self.screen,self.ball, THICKNESS, C_WHITE, C_BLACK)
+			Game.__draw_alternate_lines_in_obj(self.screen,self.batl, THICKNESS, C_WHITE, C_BLACK)
+			Game.__draw_alternate_lines_in_obj(self.screen,self.batr, THICKNESS, C_WHITE, C_BLACK)
 		if self.gamestate == GameState.pause:
 			self._draw_pause()
+		elif self.gamestate == GameState.gameover:
+			self._draw_gameover()
 		
-	def _check_GameState(self):
-		# check essentials keys
-		keys = py.key.get_pressed()
-		if keys[PAUSE] and self.cooldown < 0: 
-			self.cooldown = WAIT_PAUSE
-			if self.gamestate == GameState.run:
-				self.gamestate = GameState.pause
-			elif self.gamestate == GameState.pause:
-				self.gamestate = GameState.run		
-			elif self.gamestate == GameState.gameover:
-				self.gamestate = GameState.run	
-			#print(f"{self.gamestate.name} state")
-		
-		elif keys[EXIT_PRG]:  # Touche ECHAP
-			self.running = False
-			return
-		
-
-		self.cooldown -= 1
-		if self.cooldown < -1000000:
-			self.cooldown = 0
-
-	def _draw_pause(self):
-		Game.__drawstate(self.screen,self.fnt_pause, self.fnt_next)
-
-	def _draw_gameover(self):
-		pass		
-
-	def __move_bats(self):
-		# check if bat keys released
+	def _check_Events(self):
+		# check events
 		for event in py.event.get():
 			if event.type == py.QUIT: # Croix de fermeture
 				self.running=False
 				return	
-			if event.type == py.KEYUP:  # lorque les touches raquettes sont relachés
+			if event.type == py.KEYUP:  # lorque les touches raquettes sont relachées
 				for i in range(0,len(self.keys)):
 					if event.key == self.keys[i][0]:
 						self.batspeeddec[int(i/2)] = True
-						
-		# gestion de la deceleration des bats (on a relaché une touche)
-		for i in range(0,len(self.batspeeddec)):
-			if self.batspeeddec[i]:
-				self.tweenspeed[i] /= 3
-				if self.tweenspeed[i] < TWEEN_MIN:
-					self.tweenspeed[i] = TWEEN_MIN
-					self.batdirs[i] = 0
 
+		
+		keys = py.key.get_pressed()
+		if keys[EXIT_PRG]:  # Touche ECHAP Pressée
+			self.running = False
+			return
+
+		self.key_pause_pressed = keys[PAUSE]
+		if self.key_pause_pressed: 
+			if self.key_released:   		  # Key released
+				self.key_released = False
+				if self.gamestate == GameState.run:
+					self.gamestate = GameState.pause
+				elif self.gamestate == GameState.pause:
+					self.gamestate = GameState.run
+				elif self.gamestate == GameState.gameover:
+					self.gamestate = GameState.run
+					self.__start()
+		else: 
+			self.key_released = True
+							
+		
+
+	def _draw_pause(self):
+		Game.__drawstate(self.screen,self.fnt_pause, self.fnt_play)
+
+	def _draw_gameover(self):
+		Game.__drawstate(self.screen,self.fnt_winner, self.fnt_restart)
+				
+
+	def __move_bats(self):
+		
 		# gestion acceleration des bats (on appuie sur une touche)
 		keys = py.key.get_pressed()
 		for i in range(0,len(self.keys)):
@@ -201,19 +201,23 @@ class Game():
 				self.tweenspeed[int(i/2)] = math.sqrt(self.tweenspeed[int(i/2)])
 				if self.tweenspeed[int(i/2)] > TWEEN_MAX:
 					self.tweenspeed[int(i/2)] = TWEEN_MAX
-
-				
+			
+		# gestion de la deceleration des bats (on a relaché une touche)
+		for i in range(0,len(self.batspeeddec)):
+			if self.batspeeddec[i]:
+				self.tweenspeed[i] /= 3
+				if self.tweenspeed[i] < TWEEN_MIN:
+					self.tweenspeed[i] = TWEEN_MIN
+					self.batdirs[i] = 0		
 		
 		for i in range (0,len(self.speedbat_frame_dy)):
 			self.speedbat_frame_dy[i]=self.dt * SPD_BAT * self.batdirs[i] * self.tweenspeed[i]
 
-		# UPD bats positions only in Running GameState
-		if self.gamestate == GameState.run:
-			self.batl.y += self.speedbat_frame_dy[0]
-			self.batr.y += self.speedbat_frame_dy[1]
+		self.batl.y += self.speedbat_frame_dy[0]
+		self.batr.y += self.speedbat_frame_dy[1]
 			
-			self.batl.y = Game.clamp(self.batl.y,SPC_Y,SCR_H - self.batl.height - SPC_Y)
-			self.batr.y = Game.clamp(self.batr.y,SPC_Y,SCR_H - self.batr.height - SPC_Y)
+		self.batl.y = Game.clamp(self.batl.y,SPC_Y,SCR_H - self.batl.height - SPC_Y)
+		self.batr.y = Game.clamp(self.batr.y,SPC_Y,SCR_H - self.batr.height - SPC_Y)
 	
 
 	def __move_ball(self):
@@ -235,18 +239,25 @@ class Game():
 			self.rscore += 1
 			if self.rscore >= MAX_SCORE:
 				self.rscore = MAX_SCORE
-				self.__start()
+				self.gamestate = GameState.gameover
+				self.fnt_winner = self.right_win
+				self.fnt_rscore	  = self.font.render(str(self.rscore),False,C_WHITE)
+				return
+				
 			else:
 				self.__init()
 		
 		elif self.ball.x > (self.batr.right + self.ball.width):  # joueur gauche gagne
 			py.mixer.Sound.play(self.balllost)
-			#Game.lost = True
 			self.balldx = 1
 			self.lscore += 1
 			if self.lscore >= MAX_SCORE:
 				self.lscore = MAX_SCORE
-				self.__start()
+				self.gamestate = GameState.gameover
+				self.fnt_winner = self.left_win
+				self.fnt_lscore	  = self.font.render(str(self.lscore),False,C_WHITE)
+				return
+				
 			else:
 				self.__init()
 

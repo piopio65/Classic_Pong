@@ -1,6 +1,5 @@
 import pygame as py
 import math
-#import pytweening
 from enum import Enum
 
 class GameState(Enum):
@@ -100,7 +99,8 @@ NB_LINES = round(SCR_H / LINE_HEIGHT)
 LINE_MIN = 20
 THICKNESS = 1
 
-
+# MOUSE
+MOUSE_VISIBLE   = False
 
 # EXIT
 EXIT_PRG        = py.K_ESCAPE
@@ -124,8 +124,10 @@ ICON            = 'assets/images/pong.png'
 MAX_SCORE       = 15
 
 # PAUSE
-TXT_PAUSE       = 'GAME PAUSED'
-TXT_NEXT        = 'PRESS SPACE TO PLAY'
-WAIT_PAUSE      = 30 # 0.5s
+TXT_PAUSE        = 'GAME PAUSED'
+TXT_PLAY         = 'PRESS SPACE TO PLAY'
+TXT_RESTART      = 'PRESS SPACE TO RESTART'
+TXT_L_PLAYER_WIN = 'LEFT PLAYER WIN'
+TXT_R_PLAYER_WIN = 'RIGHT PLAYER WIN'
 
-RATIO_START_V   = 20
+RATIO_START_V    = 20
