@@ -12,22 +12,22 @@ class Game():
 
 	def __init__(self,width=SCR_W,height=SCR_H):
 		random.seed(time.time() *1000)
-		py.init()
+		pg.init()
 		# Traitement des parametres
 		if BORDERLESS:
-			flags = py.NOFRAME | py.SCALED
+			flags = pg.NOFRAME | pg.SCALED
 		else:
-			flags = py.SCALED
-		self.screen 	 = py.display.set_mode((width, height),flags,vsync=1)
+			flags = pg.SCALED
+		self.screen 	 = pg.display.set_mode((width, height),flags,vsync=1)
 		
 		# Load Icon Image
-		surf_ico = py.image.load(ICON).convert_alpha()
+		surf_ico = pg.image.load(ICON).convert_alpha()
 		
-		py.display.set_icon(surf_ico)
-		py.display.set_caption(TITLE)
-		py.mouse.set_visible(MOUSE_VISIBLE)
+		pg.display.set_icon(surf_ico)
+		pg.display.set_caption(TITLE)
+		pg.mouse.set_visible(MOUSE_VISIBLE)
 
-		self.clock		 = py.time.Clock() 
+		self.clock		 = pg.time.Clock() 
 		# indice 0 la Key associée, indice 1 la valeur de la direction associé sur l'axe y  
 		self.keys 		 = ((P1_UP,-1),
 							(P1_DOWN,1),
@@ -38,15 +38,15 @@ class Game():
 		self.running = True
 		
 		# Load sounds
-		self.ballhitbat	 = py.mixer.Sound(BALL_HIT_BAT)
-		self.ballhitwall = py.mixer.Sound(BALL_HIT_WALL)
-		self.balllost	 = py.mixer.Sound(BALL_LOST)
+		self.ballhitbat	 = pg.mixer.Sound(BALL_HIT_BAT)
+		self.ballhitwall = pg.mixer.Sound(BALL_HIT_WALL)
+		self.balllost	 = pg.mixer.Sound(BALL_LOST)
 
 		# Load Fonts
 		# font for score
-		self.font = py.font.Font(FONT1,FONT_SIZE)
+		self.font = pg.font.Font(FONT1,FONT_SIZE)
 		# font for other stuff
-		self.font2 = py.font.Font(FONT2,FONT_SIZE2)
+		self.font2 = pg.font.Font(FONT2,FONT_SIZE2)
 		
 		# Gamestates
 		self.gamestate 		= GameState.pause
@@ -71,13 +71,13 @@ class Game():
 
 	def __start(self):
 		
-		self.vline 		 	= py.Rect((SCR_W - LINE_WIDTH)/2, LINE_MIN, LINE_WIDTH, SCR_H - (LINE_MIN * 2))
-		self.ball 			= py.Rect(BALL_X,BALL_Y,BALL_W,BALL_H)
+		self.vline 		 	= pg.Rect((SCR_W - LINE_WIDTH)/2, LINE_MIN, LINE_WIDTH, SCR_H - (LINE_MIN * 2))
+		self.ball 			= pg.Rect(BALL_X,BALL_Y,BALL_W,BALL_H)
 		self.balldx		 	= random.choice(Game.choices)
 		 
 		self.ballangle	 	= BALL_MAX_ANGLE
-		self.batl 		 	= py.Rect(BATL_X,BATL_Y,BAT_W,BAT_H)
-		self.batr 		 	= py.Rect(BATR_X,BATR_Y,BAT_W,BAT_H)
+		self.batl 		 	= pg.Rect(BATL_X,BATL_Y,BAT_W,BAT_H)
+		self.batr 		 	= pg.Rect(BATR_X,BATR_Y,BAT_W,BAT_H)
 		
 		# Scores
 		self.lscore		 	= 0
@@ -116,8 +116,8 @@ class Game():
 			self.dt = self.clock.tick(FPS)/1000.0
 			self._update()
 			self._draw()
-			py.display.update()
-		py.quit()
+			pg.display.update()
+		pg.quit()
 	
 	def _update(self):
 		self._check_Events()
@@ -152,17 +152,17 @@ class Game():
 		
 	def _check_Events(self):
 		# check events
-		for event in py.event.get():
-			if event.type == py.QUIT: # Croix de fermeture
+		for event in pg.event.get():
+			if event.type == pg.QUIT: # Croix de fermeture
 				self.running=False
 				return	
-			if event.type == py.KEYUP:  # lorque les touches raquettes sont relachées
+			if event.type == pg.KEYUP:  # lorque les touches raquettes sont relachées
 				for i in range(0,len(self.keys)):
 					if event.key == self.keys[i][0]:
 						self.batspeeddec[int(i/2)] = True
 
 		
-		keys = py.key.get_pressed()
+		keys = pg.key.get_pressed()
 		if keys[EXIT_PRG]:  # Touche ECHAP Pressée
 			self.running = False
 			return
@@ -193,7 +193,7 @@ class Game():
 	def __move_bats(self):
 		
 		# gestion acceleration des bats (on appuie sur une touche)
-		keys = py.key.get_pressed()
+		keys = pg.key.get_pressed()
 		for i in range(0,len(self.keys)):
 			if keys[self.keys[i][0]]:
 				self.batdirs[int(i/2)] = self.keys[i][1]
@@ -223,7 +223,7 @@ class Game():
 	def __move_ball(self):
 		 
 		if self.ball.y < 0 or self.ball.y > SCR_H - self.ball.height:
-			py.mixer.Sound.play(self.ballhitwall)
+			pg.mixer.Sound.play(self.ballhitwall)
 			self.vy_norm = abs(self.vy_norm)
 			if self.ball.y < 0:
 				self.ball.y = 0
@@ -234,7 +234,7 @@ class Game():
 			
 			
 		if self.ball.x < (self.batl.x - self.ball.width): # joueur droite gagne
-			py.mixer.Sound.play(self.balllost)
+			pg.mixer.Sound.play(self.balllost)
 			self.balldx = -1
 			self.rscore += 1
 			if self.rscore >= MAX_SCORE:
@@ -248,7 +248,7 @@ class Game():
 				self.__init()
 		
 		elif self.ball.x > (self.batr.right + self.ball.width):  # joueur gauche gagne
-			py.mixer.Sound.play(self.balllost)
+			pg.mixer.Sound.play(self.balllost)
 			self.balldx = 1
 			self.lscore += 1
 			if self.lscore >= MAX_SCORE:
@@ -268,17 +268,17 @@ class Game():
 	
 	def __manage_collisions(self):
 		# collide with bats
-		if py.Rect.colliderect(self.ball,self.batl): # left bat
+		if pg.Rect.colliderect(self.ball,self.batl): # left bat
 			
-			py.mixer.Sound.play(self.ballhitbat)
+			pg.mixer.Sound.play(self.ballhitbat)
 			self.balldx = 1
 			self.ball.x = self.batl.right
 			self.vx_norm, self.vy_norm = Game.__calc_result_angles(self.batl,self.ball,self.balldy)
 			
 
-		elif py.Rect.colliderect(self.ball,self.batr): # right bat
+		elif pg.Rect.colliderect(self.ball,self.batr): # right bat
 			
-			py.mixer.Sound.play(self.ballhitbat)
+			pg.mixer.Sound.play(self.ballhitbat)
 			self.balldx = -1
 			self.ball.x = self.batr.x - self.ball.width
 			self.vx_norm, self.vy_norm = Game.__calc_result_angles(self.batr,self.ball,self.balldy)
@@ -290,18 +290,18 @@ class Game():
 		for i in range(0,obj.height,thickness):
 			alt = alt^1	 
 			if alt==0:
-				py.draw.rect(scr,color1,py.Rect(obj.x,obj.y + i,obj.width, thickness))
+				pg.draw.rect(scr,color1,pg.Rect(obj.x,obj.y + i,obj.width, thickness))
 			else:
 				if color2:
-					py.draw.rect(scr,color2,py.Rect(obj.x,obj.y + i,obj.width, thickness))
+					pg.draw.rect(scr,color2,pg.Rect(obj.x,obj.y + i,obj.width, thickness))
 
 	@staticmethod
 	def __drawscores(scr,fntscore_l,fntscore_r):
 		xr = BATR_X - BAT_W - fntscore_r.get_width()
 		xl = round(SCR_W / 3.3)
 		
-		rect_xr = py.Rect(xr,SCR_H/20,fntscore_r.get_width(),fntscore_r.get_height())
-		rect_xl = py.Rect(xl,SCR_H/20,fntscore_l.get_width(),fntscore_l.get_height())
+		rect_xr = pg.Rect(xr,SCR_H/20,fntscore_r.get_width(),fntscore_r.get_height())
+		rect_xl = pg.Rect(xl,SCR_H/20,fntscore_l.get_width(),fntscore_l.get_height())
 
 		scr.blit(fntscore_r,(xr,SCR_H/RATIO_START_V))
 		scr.blit(fntscore_l,(xl,SCR_H/RATIO_START_V))
@@ -314,13 +314,13 @@ class Game():
 		xt = round((SCR_W - fnt_text.get_width()) / 2)
 		yt = round((SCR_H - fnt_text.get_height()) / 2)
 
-		rect_t = py.Rect(xt,yt,fnt_text.get_width(),fnt_text.get_height())
+		rect_t = pg.Rect(xt,yt,fnt_text.get_width(),fnt_text.get_height())
 		scr.blit(fnt_text,(xt,yt))
 		Game.__draw_alternate_lines_in_obj(scr,rect_t,THICKNESS,C_BLACK)
 
 		xt = round((SCR_W - fnt_next.get_width()) / 2)
 		yt += fnt_next.get_height() + 8
-		rect_t = py.Rect(xt,yt,fnt_next.get_width(),fnt_next.get_height())
+		rect_t = pg.Rect(xt,yt,fnt_next.get_width(),fnt_next.get_height())
 		scr.blit(fnt_next,(xt,yt))
 		Game.__draw_alternate_lines_in_obj(scr,rect_t,THICKNESS,C_BLACK)
 

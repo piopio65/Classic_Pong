@@ -1,4 +1,4 @@
-import pygame as py
+import pygame as pg
 import math
 from enum import Enum
 
@@ -37,11 +37,11 @@ TITLE = 'Classic Pong'
 
 
 # KEYS 
-P1_UP           = py.K_a
-P1_DOWN         = py.K_q
-P2_UP           = py.K_UP
-P2_DOWN         = py.K_DOWN
-PAUSE           = py.K_SPACE
+P1_UP           = pg.K_a
+P1_DOWN         = pg.K_q
+P2_UP           = pg.K_UP
+P2_DOWN         = pg.K_DOWN
+PAUSE           = pg.K_SPACE
 
 
 # DEFAULT KEYS
@@ -103,7 +103,7 @@ THICKNESS = 1
 MOUSE_VISIBLE   = False
 
 # EXIT
-EXIT_PRG        = py.K_ESCAPE
+EXIT_PRG        = pg.K_ESCAPE
 
 # SOUNDS
 BALL_HIT_BAT    = 'assets/sounds/ball_hit_bat.wav'
